@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>canvas bar graph</title>
+    </head>
+    <body>
+        <canvas id="myCanvas" width="500" height="500" style="border:1px solid #000000;">
+        </canvas>
+        <script type="text/javascript">
+        //used for first iteration of frame skip loop
+        var flag = true;
+        //variable used to determine frames skipped on bar graph generation
+        var count = 0;
+        //minimum amplitude of sine wave
+        var amplitude = 10;
+        //initial amount for sine wave implementation
+        var incrementer = 25;
+        //rectArr for bar graph is declared outside of the funtcion so that it is accesible outside of the frame skip loop
+        var rectArr = [];
+
+        function init(){
+            window.requestAnimationFrame(draw);
+        }
+        function draw(){
+            var c=document.getElementById("myCanvas");
+            var ctx=c.getContext("2d");
+            //clear the canvas
+            ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
+            //needed to properly clear the canvas
+            ctx.save();
+
+            //randomNumberGenerator
+            function genRandomNumb(min, max){
+                return Math.round(Math.random() * (max - min + 1)) + min;
+            }
+
+            //generate rectangles on the canvas
+            function genBarGraph(){
+
+                //count determines the number of frames to skip
+                //flag is initialized as  true to allow for the initial array of random numbers
+                if(count == 6 || flag){
+                    rectArr = []
+                    //generate a random rectArray of numbers
+                    for(var i = 0; i < 10; i++){
+                        //set the min and max bar height to 10% and 90% of 1/2 the canvas height
+                        rectArr.push(genRandomNumb(myCanvas.height / 2 * .1, myCanvas.height / 2 * .9));
+                    }
+                    count = 0;
+                    flag = false;
+                }
+                else{
+                    count++;
+                }
+
+                //generate 10 rectangles
+                for(var i = 0; i < rectArr.length; i++){
+                    //upper left x, upper left y, width, height
+                    ctx.beginPath();
+                    //top bar
+                    ctx.rect(i * (myCanvas.width/10), myCanvas.height/2 - rectArr[i], (myCanvas.width/10), rectArr[i]);
+                    //bottom bar
+                    ctx.rect(i * (myCanvas.width/10), myCanvas.height/2, (myCanvas.width/10), rectArr[i]);
+                    ctx.stroke();
+                    ctx.closePath();
+                }
+
+            }
+
+            function genSine(){
+                //change the amplitude of the sine wave
+                function newAmp(){
+                    //amplitude limit is determined by a value based on incrementer
+                    //currently set to value that is pleasing to the eye
+                    //both should be based on height of canvas
+                    if(amplitude > 184){
+                        incrementer = -40;
+                    }
+                    if(amplitude < -189){
+                        incrementer = 40;
+                    }
+                    //console.log(amplitude)
+                    amplitude += incrementer;
+                }
+                newAmp();
+                //begin drawing of waves
+                ctx.beginPath();
+                //left sine wave
+                var height1 = myCanvas.height/4;
+                var length1 = myCanvas.width/2;
+                //find each coord of sine wave
+                for(x=0; x<=length1; x++){
+                    y =  2 * height1 - Math.sin(x * Math.PI / height1) * amplitude;
+                    ctx.lineTo(x,y);
+                }
+                //right sine wave
+                var height2 = myCanvas.height/4;
+                var length2 = myCanvas.width;
+                //find each coord of sine wave
+                for(x=myCanvas.width/2; x<=length2; x++){
+                    y = 2 * height2 - Math.sin(x * Math.PI / height2) * amplitude;
+                    ctx.lineTo(x,y);
+                }
+                //draw the coords
+                ctx.stroke();
+                ctx.closePath();
+            }
+
+            genBarGraph(); //activate bar graph
+            genSine(); //activate sin wave
+
+            //restore is needed in order to properly clear the canvas
+            ctx.restore();
+
+            //set the frame rate by divisor
+            var fps = 60;
+            setTimeout(function(){
+            window.requestAnimationFrame(draw)}, 1000 / fps)
+        };
+        init();
+        </script>
+    </body>
+</html>
